@@ -53,6 +53,9 @@ def init_sentry() -> None:
         environment=os.environ.get("SENTRY_ENVIRONMENT") or "production",
         release=os.environ.get("APPLICATION_VERSION") or None,
         before_send=_scrub_before_send,
+        # daemon で受けた password/TOTP は別名の frame local (press_sequentially の text 等) に
+        # 残り、マスクでは防げないため収集自体を止める。
+        include_local_variables=False,
     )
 
 
