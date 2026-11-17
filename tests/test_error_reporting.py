@@ -4,9 +4,11 @@
 cookie/token とは一切関係ない。
 """
 import json
+import os
 import unittest
+from unittest import mock
 
-from src.error_reporting import _scrub_before_send, _scrub_repr_string, _scrub_value
+from src.error_reporting import init_sentry, _scrub_before_send, _scrub_repr_string, _scrub_value
 
 DUMMY_CT0 = "dummy-ct0-value"
 DUMMY_AUTH_TOKEN = "dummy-auth-token-value"
@@ -169,6 +171,14 @@ class TestScrubBeforeSendResponseBody(unittest.TestCase):
         ]["body"]
         self.assertNotIn(DUMMY_CT0, scrubbed_body)
         self.assertNotIn(DUMMY_AUTH_TOKEN, scrubbed_body)
+
+
+class TestInitSentryDisablesLocalVariables(unittest.TestCase):
+    def test_include_local_variables_is_false(self):
+        with mock.patch.dict(os.environ, {"SENTRY_DSN": "https://k@example.invalid/1"}):
+            with mock.patch("sentry_sdk.init") as init:
+                init_sentry()
+        self.assertIs(init.call_args.kwargs["include_local_variables"], False)
 
 
 if __name__ == "__main__":
